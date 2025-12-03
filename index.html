@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CuaGPT</title>
+  <!-- CSS here-->
+  <style>
+    :root{
+        --bg: #0b0f18;
+        --card: #121826;
+        --text: #631e3f;
+        --muted: #9aa3b2;
+        --ring: #fadbf4;
+
+    }
+    body { 
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: radial-gradient(1200px 600px at 50% -100px, #f7f4f2, #ffeffe);
+        color: var(--text);
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+        flex-direction: column;
+        flex: 1;
+    }
+    #messages{
+        background-color: #ffd8f9;
+        border-radius: 14px;
+        padding: 2px 20px;
+    }
+
+
+    /* Khung chứa input */
+    .input-wrap
+    {
+        width: min(800px,92vw);
+        border: 2px radial-gradient(to bottom, #2d0b2b, #ffffff);
+        border-radius: 14px;
+        box-shadow:
+            0 10px 40px -10px rgba(0,0,0,0.6),
+            0 5px 0 0 rgba(255,255,255,0.04) inset;
+        padding: 14px 15px;
+        display: flex;
+        gap: 10px;
+
+    }
+    .input-wrap input[type="text"]
+    {
+        flex: 1;
+        background: #fdfaff;
+        border: none;
+        border-radius: 6px;
+        outline: none;
+        color: var(--text);
+        font-size: clamp(16px, 2.3vw, 18px);
+        line-height: 2;
+        padding-left: 16px;
+    }
+    /*Nút gửi*/
+    .send-btn {
+      background: var(--ring);
+      color: var(--text);
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: filter 120ms ease, transform 80ms ease;
+    }
+
+    /* Hiệu ứng toàn khung */
+    ::placeholder { color: var(--muted); opacity: 0.8; }
+    @media (max-width: 480px) {
+      .input-wrap { padding: 12px; border-radius: 12px; }
+      .send-btn { padding: 10px 12px; }
+    }
+
+    #frames{
+      display: none;
+      flex-direction: column;
+      gap: 3px;   
+      border: 5px solid #ffffff;
+      border-radius: 15px;
+      width: min(800px,92vw);
+      height: 67vh;
+      background-color: #fff5ff;
+      overflow-y: auto;
+      box-shadow:
+            0 10px 40px -10px rgba(53, 52, 52, 0.6),
+            0 5px 0 0 rgba(255, 255, 255, 0.04) inset;
+      padding: 14px;
+      align-items:flex-end;
+      scrollbar-width: none; 
+    }
+
+    .messages{
+      display: inline-block;  
+      align-self: flex-end;
+      border: 2px solid #fff3ff;
+      background-color: #ffffff;
+      border-radius: 10px;
+      max-width: 70%;
+      margin: 3px;
+      text-align: left;
+      color: var(--text);
+      padding: 14px 12px;
+      word-wrap: break-word;     
+      white-space: normal; 
+    }
+
+    .messages-bot{
+      display: inline-block;  
+      align-self: flex-start;
+      border: 2px solid #fff3ff;
+      background-color: #ffffff;
+      border-radius: 10px;
+      max-width: 70%;
+      margin: 3px;
+      text-align: left;
+      color: var(--text);
+      padding: 14px 12px;
+      word-wrap: break-word;     
+      white-space: normal; 
+    }
+
+    #pendingtext{
+    animation: blinkDots 1.55s infinite;
+    }
+
+    @keyframes blinkDots {
+      0%   { opacity: 0; }
+      50%  { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+
+
+  </style>
+</head>
+<body>
+  <!-- Nội dung chính của trang -->
+    <h1 id="hello">Chào bạn! Mình có thể giúp gì cho bạn</h1>
+    <div id="frames">
+    </div>
+    <h1>
+
+    </h1>
+    <div class="input-wrap">
+        <input type="text" placeholder="Ask anything..." />
+        <button class="send-btn" type="button">Gửi</button>
+    </div>
+
+  <!-- Script JS -->
+  <script>
+    // Enter để gửi nhanh
+    const input = document.querySelector('input[type="text"]');
+    const btn = document.querySelector('.send-btn');
+    const messages = document.getElementById("messages");
+    const frames = document.getElementById("frames");
+    const hello = document.getElementById("hello");
+
+
+
+    input.addEventListener('keydown', (e) =>{
+        if (e.key === 'Enter') btn.click();
+    });
+    btn.addEventListener('click', async function() {
+        const text = input.value.trim();
+        input.value = '';
+        // Tạo phần tử mới
+        const p = document.createElement("div");
+        p.textContent = text;
+        p.className = "messages"; 
+        frames.appendChild(p);
+
+        const pending = document.createElement("div");
+        pending.textContent = "";
+        pending.id = "pendingtext";
+        pending.className = "messages-bot"; 
+        frames.appendChild(pending);
+        let i=0;
+        content = "Chờ một chút, CuaGPT đang suy nghĩ...";
+        function typeWriter() {
+        if (i < content.length) {
+        document.getElementById("pendingtext").innerHTML += content.charAt(i);
+        i++;
+        setTimeout(typeWriter, 20); // tốc độ gõ (ms)
+          }
+        }
+        typeWriter(); 
+
+
+        hello.style.display = "none";
+        frames.style.display = "flex";
+
+        // gửi dữ liệu sang backend bằng fetch
+        const response = await fetch("http://localhost:8000/process", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: text })
+        });
+
+        const data = await response.json(); 
+        // Xóa phần tử chờ
+        frames.removeChild(pending);
+
+        // Tạo phần tử mới GPT trả về
+        const t = document.createElement("div");
+        t.textContent = "";
+        t.id="bottext";
+        t.className = "messages-bot"; 
+        frames.appendChild(t);
+
+        let y=0;
+        content = data.result;
+        function typeWriter2() {
+        if (y < content.length) {
+        t.innerHTML += content.charAt(y);
+        y++;
+        setTimeout(typeWriter2, 15); // tốc độ gõ (ms)
+          }
+        }
+        typeWriter2(); 
+
+    });
+
+
+  </script>
+</body>
+<footer>
+    <h4>
+        CuaGPT may make mistakes
+    </h4>
+</footer>
+</html>
